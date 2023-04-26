@@ -26,7 +26,7 @@ app.get('/api/country/:country', async (req, res) => {
       languages,
       flags,
       currencies,
-      latlng
+      latlng,
     } = countryData;
     
     res.json({
@@ -43,7 +43,7 @@ app.get('/api/country/:country', async (req, res) => {
         name: Object.values(currencies)[0].name,
         symbol: Object.values(currencies)[0].symbol,
       },
-      latlng: latlng
+      latlng: latlng,
     });
   } catch (error) {
     console.error('Error fetching country data:', error);
@@ -55,7 +55,7 @@ app.get('/api/country/:country', async (req, res) => {
 app.get('/api/country/language/:language', async (req, res) => {
   try {
     const response = await axios.get(`https://restcountries.com/v3.1/lang/${req.params.language}`);
-    // ... handle response and send back relevant data
+    res.json(response.data);
   } catch (error) {
     // ... handle error
   }
@@ -73,9 +73,14 @@ app.get('/api/country/currency/:currency', async (req, res) => {
 app.get('/api/country/region/:region', async (req, res) => {
   try {
     const response = await axios.get(`https://restcountries.com/v3.1/region/${req.params.region}`);
-    // ... handle response and send back relevant data
+    const countries = response.data.map(country => ({
+      name: country.name.common,
+      region: country.region
+    }));
+    res.json(countries);
   } catch (error) {
-    // ... handle error
+    console.error('Error fetching country data:', error);
+    res.status(500).json({ error: 'Failed to fetch country data' });
   }
 });
 
