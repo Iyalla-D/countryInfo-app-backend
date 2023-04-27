@@ -57,7 +57,7 @@ app.get('/api/country/language/:language', async (req, res) => {
     const response = await axios.get(`https://restcountries.com/v3.1/lang/${req.params.language}`);
     res.json(response.data);
   } catch (error) {
-    console.error('Error fetching country data:', error);
+    console.error('Error fetching country language data:', error);
     res.status(500).json({ error: 'Failed to fetch country data' });
   }
 });
@@ -67,7 +67,7 @@ app.get('/api/country/currency/:currency', async (req, res) => {
     const response = await axios.get(`https://restcountries.com/v3.1/currency/${req.params.currency}`);
     res.json(response.data);
   } catch (error) {
-    console.error('Error fetching country data:', error);
+    console.error('Error fetching country currency data:', error);
     res.status(500).json({ error: 'Failed to fetch country data' });
   }
 });
@@ -77,7 +77,7 @@ app.get('/api/country/region/:region', async (req, res) => {
     const response = await axios.get(`https://restcountries.com/v3.1/region/${req.params.region}`);
     res.json(response.data);
   } catch (error) {
-    console.error('Error fetching country data:', error);
+    console.error('Error fetching country region data:', error);
     res.status(500).json({ error: 'Failed to fetch country data' });
   }
 });
@@ -87,7 +87,7 @@ app.get('/api/country/subregion/:subregion', async (req, res) => {
     const response = await axios.get(`https://restcountries.com/v3.1/subregion/${req.params.subregion}`);
     res.json(response.data);
   } catch (error) {
-    console.error('Error fetching country data:', error);
+    console.error('Error fetching country subregion data:', error);
     res.status(500).json({ error: 'Failed to fetch country data' });
   }
 });
@@ -101,12 +101,12 @@ app.get('/api/languages', async (req, res) => {
     allCountries.forEach(country => {
       if (country.languages) {
         Object.entries(country.languages).forEach(([code, language]) => {
-          languagesMap.set(language, code);
+          languagesMap.set(code, language);
         });
       }
     });
 
-    res.json(Array.from(languagesMap, ([language, code]) => ({ language, code })));
+    res.json(Array.from(languagesMap, ([code, language]) => ({code, language})));
   } catch (error) {
     console.error('Error fetching languages:', error);
     res.status(500).json({ error: 'Failed to fetch languages' });
@@ -135,12 +135,12 @@ app.get('/api/currencies', async (req, res) => {
     allCountries.forEach(country => {
       if (country.currencies) {
         Object.entries(country.currencies).forEach(([code, {name, symbol}]) => {
-          currenciesMap.set(name, symbol);
+          currenciesMap.set(code, name, symbol);
         });
       }
     });
 
-    res.json(Array.from(currenciesMap, ([name, symbol]) => ({ name, symbol })));
+    res.json(Array.from(currenciesMap, ([code, name, symbol]) => ({code, name, symbol })));
 
   } catch (error) {
     console.error('Error fetching currencies:', error);
@@ -161,31 +161,57 @@ app.get('/api/subregions', async (req, res) => {
   }
 });
 
-app.get('/api/country/filter', async (req, res) => {
+app.get('/api/country/filter/filters', async (req, res) => {
   try {
+    const { language, currency, region, subregion } = req.query;
+    console.log(language);
+    console.log(currency);
+    console.log(region);
+    console.log(subregion);
     let endpoint = 'https://restcountries.com/v3.1/all';
 
     const response = await axios.get(endpoint);
     let filteredCountries = response.data;
 
-    if (req.query.language) {
-      filteredCountries = filteredCountries.filter((country) =>
-        Object.keys(country.languages).includes(req.query.language)
+    if (language) {
+      console.log(language);
+      filteredCountries = filteredCountries.filter((country) =>{
+        const languages = country.languages;
+        return languages && Object.keys(languages).includes(language);
+      });
+    }
+
+    if (currency!== undefined && currency !== null) {
+      console.log(currency);
+      filteredCountries = filteredCountries.filter((country) => {
+        const currencies = country.currencies;
+        return currencies && Object.keys(currencies).includes(currency);
+      });
+    }
+
+    if (region) {
+      console.log(region);
+      filteredCountries = filteredCountries.filter(
+        (country) => country.region === region
       );
     }
 
-    if (req.query.region) {
+    if (subregion) {
+      console.log(subregion);
       filteredCountries = filteredCountries.filter(
-        (country) => country.region === req.query.region
+        (country) => country.subregion === subregion
       );
     }
+    console.log(filteredCountries);
 
     res.json(filteredCountries);
   } catch (error) {
-    console.error('Error fetching country data:', error);
+    console.error('Error fetching filtered country data:', error);
     res.status(500).json({ error: 'Failed to fetch country data' });
   }
 });
+
+
 
 
 app.listen(PORT, () => {
