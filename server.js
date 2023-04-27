@@ -131,16 +131,17 @@ app.get('/api/currencies', async (req, res) => {
     const response = await axios.get('https://restcountries.com/v3.1/all');
     const allCountries = response.data;
 
-    const currenciesSet = new Set();
+    const currenciesMap = new Map();
     allCountries.forEach(country => {
       if (country.currencies) {
-        Object.values(country.currencies).forEach(currency => {
-          currenciesSet.add(currency.name);
+        Object.entries(country.currencies).forEach(([code, {name, symbol}]) => {
+          currenciesMap.set(name, symbol);
         });
       }
     });
 
-    res.json([...currenciesSet]);
+    res.json(Array.from(currenciesMap, ([name, symbol]) => ({ name, symbol })));
+
   } catch (error) {
     console.error('Error fetching currencies:', error);
     res.status(500).json({ error: 'Failed to fetch currencies' });
@@ -159,7 +160,6 @@ app.get('/api/subregions', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch subregions' });
   }
 });
-
 
 app.get('/api/country/filter', async (req, res) => {
   try {
