@@ -5,8 +5,6 @@ const cors = require('cors');
 const app = express();
 const PORT = 5000;
 
-
-
 app.use(cors());
 
 app.get('/api/country/:country', async (req, res) => {
@@ -135,12 +133,12 @@ app.get('/api/currencies', async (req, res) => {
     allCountries.forEach(country => {
       if (country.currencies) {
         Object.entries(country.currencies).forEach(([code, {name, symbol}]) => {
-          currenciesMap.set(code, name, symbol);
+          currenciesMap.set(code, {name, symbol});
         });
       }
     });
-
-    res.json(Array.from(currenciesMap, ([code, name, symbol]) => ({code, name, symbol })));
+    
+    res.json(Array.from(currenciesMap, ([code, {name, symbol}]) => ({code, name, symbol })));
 
   } catch (error) {
     console.error('Error fetching currencies:', error);
@@ -164,17 +162,12 @@ app.get('/api/subregions', async (req, res) => {
 app.get('/api/country/filter/filters', async (req, res) => {
   try {
     const { language, currency, region, subregion } = req.query;
-    console.log(language);
-    console.log(currency);
-    console.log(region);
-    console.log(subregion);
     let endpoint = 'https://restcountries.com/v3.1/all';
 
     const response = await axios.get(endpoint);
     let filteredCountries = response.data;
 
     if (language) {
-      console.log(language);
       filteredCountries = filteredCountries.filter((country) =>{
         const languages = country.languages;
         return languages && Object.keys(languages).includes(language);
@@ -182,7 +175,6 @@ app.get('/api/country/filter/filters', async (req, res) => {
     }
 
     if (currency!== undefined && currency !== null) {
-      console.log(currency);
       filteredCountries = filteredCountries.filter((country) => {
         const currencies = country.currencies;
         return currencies && Object.keys(currencies).includes(currency);
@@ -190,28 +182,23 @@ app.get('/api/country/filter/filters', async (req, res) => {
     }
 
     if (region) {
-      console.log(region);
       filteredCountries = filteredCountries.filter(
         (country) => country.region === region
       );
     }
 
     if (subregion) {
-      console.log(subregion);
       filteredCountries = filteredCountries.filter(
         (country) => country.subregion === subregion
       );
     }
-    console.log(filteredCountries);
-
+    
     res.json(filteredCountries);
   } catch (error) {
     console.error('Error fetching filtered country data:', error);
     res.status(500).json({ error: 'Failed to fetch country data' });
   }
 });
-
-
 
 
 app.listen(PORT, () => {
