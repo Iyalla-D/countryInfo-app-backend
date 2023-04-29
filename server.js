@@ -7,10 +7,6 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 
-app.use((req, res, next) => {
-  res.setHeader('Cache-Control', 'public, max-age=86400'); 
-  next();
-});
 
 app.get('/api/country/:country', async (req, res) => {
   
@@ -157,6 +153,7 @@ app.get('/api/subregions', async (req, res) => {
     const allCountries = response.data;
 
     const subregionsSet = new Set(allCountries.map(country => country.subregion).filter(subregion => subregion));
+    res.setHeader('Cache-Control', 'public, max-age=86400');
     res.json([...subregionsSet]);
   } catch (error) {
     console.error('Error fetching subregions:', error);
