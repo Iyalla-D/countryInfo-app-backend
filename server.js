@@ -7,6 +7,11 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'public, max-age=86400'); 
+  next();
+});
+
 app.get('/api/country/:country', async (req, res) => {
   
   try {
